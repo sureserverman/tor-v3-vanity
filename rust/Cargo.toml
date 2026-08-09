@@ -39,3 +39,8 @@ glob = "0.3"
 [dev-dependencies]
 # sha2 is only used by the CPU oracles (hand-rolled RFC8032 signing).
 sha2 = "0.9"
+
+[profile.release]
+# Ship a stripped binary: lintian errors on unstripped objects, and debug
+# symbols roughly double the .deb.
+strip = true

@@ -11,8 +11,24 @@ X86_64_CUDA_LIB_DIR ?= $(CURDIR)/cuda-x86-64-libs
 AARCH64_GCC := $(firstword $(shell command -v aarch64-linux-gnu-gcc 2>/dev/null || command -v aarch64-linux-gnu-gcc-14 2>/dev/null || command -v aarch64-linux-gnu-gcc-13 2>/dev/null || echo ""))
 X86_64_GCC := $(firstword $(shell command -v x86_64-linux-gnu-gcc 2>/dev/null || command -v x86_64-linux-gnu-gcc-14 2>/dev/null || command -v x86_64-linux-gnu-gcc-13 2>/dev/null || echo ""))
 
-.PHONY: all setup amd64 arm64 install-cuda check-cuda setup-cross-arm64-deps fetch-aarch64-cuda-libs setup-cross-x86-64-deps fetch-x86-64-cuda-libs clean
+DOCSRC := $(CURDIR)/../docs
+MANDIR := $(DEB_DIR)/package/usr/share/man/man1
+PKGDOCDIR := $(DEB_DIR)/package/usr/share/doc/$(BINARY)
+
+.PHONY: all setup amd64 arm64 debdocs install-cuda check-cuda setup-cross-arm64-deps fetch-aarch64-cuda-libs setup-cross-x86-64-deps fetch-x86-64-cuda-libs clean
 all: amd64
+
+# Stage the man page, copyright file and changelog into the .deb skeleton.
+# deb/ is gitignored, so these are generated at build time from the tracked
+# sources in docs/, the same way the per-arch binaries are. Without them
+# lintian reports no-changelog and no-copyright-file as errors.
+# gzip -9n: lintian wants these compressed, and -n keeps the output
+# byte-identical across builds.
+debdocs: $(DOCSRC)/t3v.1 $(DOCSRC)/copyright $(DOCSRC)/changelog
+	mkdir -p $(MANDIR) $(PKGDOCDIR)
+	gzip -9nc $(DOCSRC)/t3v.1 > $(MANDIR)/t3v.1.gz
+	gzip -9nc $(DOCSRC)/changelog > $(PKGDOCDIR)/changelog.gz
+	cp $(DOCSRC)/copyright $(PKGDOCDIR)/copyright
 
 # Install CUDA toolkit via apt (Debian/Ubuntu only). Run once if check-cuda fails.
 install-cuda:
@@ -51,7 +67,7 @@ setup-cross-x86-64-deps:
 fetch-x86-64-cuda-libs:
 	@$(CURDIR)/scripts/fetch-x86-64-cuda-libs.sh
 
-amd64: setup
+amd64: setup debdocs
 	@if [ "$(HOST_ARCH)" = "aarch64" ]; then \
 		$(MAKE) setup-cross-x86-64-deps; \
 		if [ -z "$(X86_64_GCC)" ]; then \
@@ -84,7 +100,7 @@ setup-cross-arm64-deps:
 fetch-aarch64-cuda-libs:
 	@$(CURDIR)/scripts/fetch-aarch64-cuda-libs.sh
 
-arm64: setup
+arm64: setup debdocs
 	rustup target add aarch64-unknown-linux-gnu --toolchain nightly
 	@if [ "$(HOST_ARCH)" = "aarch64" ]; then \
 		$(MAKE) check-cuda CUDA_ARCH=arm64; \
@@ -111,4 +127,4 @@ arm64: setup
 	@echo "Binary: $(DEB_DIR)/arm64/$(BINARY)"
 
 clean:
-	rm -rf target $(DEB_DIR)/amd64/$(BINARY) $(DEB_DIR)/arm64/$(BINARY)
+	rm -rf target $(DEB_DIR)/amd64/$(BINARY) $(DEB_DIR)/arm64/$(BINARY) $(MANDIR)/t3v.1.gz $(PKGDOCDIR)

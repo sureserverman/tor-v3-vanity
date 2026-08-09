@@ -1,0 +1,43 @@
+t3v (0.2.0) unstable; urgency=medium
+
+  * New incremental search kernel, now the default (--algo incremental):
+    enumerates candidates by repeated basepoint addition with batched modular
+    inversion instead of hashing a fresh seed per candidate. Measured 218x
+    faster than the original kernel on an RTX 4070. The original path remains
+    available as --algo seed.
+  * New CLI: --bonus for prefixes saved if found but which never keep the run
+    alive, --count to collect several matches per prefix, and --algo to pick
+    the kernel. The run now exits with a summary once the required prefixes
+    are found instead of looping forever. Added --version.
+  * Live per-GPU dashboard with per-prefix statistics, and plain status lines
+    when output is not a terminal.
+  * Fixed a matcher bug where prefixes whose length is a multiple of 8 never
+    matched.
+  * Prefixes are normalized to lowercase and validated up front. Previously an
+    uppercase prefix caused every genuine match to be discarded forever, and an
+    invalid base32 character produced two unrelated panics.
+  * Key files are now created mode 0600 rather than inheriting the umask, are
+    never silently overwritten, and are fsynced before being reported.
+  * Keys saved from a single GPU launch were algebraically related, so
+    compromise of one exposed the others. At most one match per launch is now
+    kept and the run re-seeds before continuing.
+  * Concurrent matches no longer race on a shared output slot; each prefix has
+    a ring of slots claimed with an atomic increment.
+  * Progress reporting replaced with P(found) and a constant expected time to
+    the next hit, which is what a memoryless search actually offers.
+  * Ship a man page, copyright file and this changelog; declare library
+    dependencies; strip the shipped binary.
+
+ -- Server Man <dupastiy@proton.me>  Sun, 09 Aug 2026 20:50:00 +0000
+
+t3v (0.1.2) unstable; urgency=medium
+
+  * Bump package version for questing/resolute distribution rollout.
+
+ -- Server Man <dupastiy@proton.me>  Mon, 13 Apr 2026 12:06:49 +0100
+
+t3v (0.1.0) unstable; urgency=medium
+
+  * Initial packaging.
+
+ -- Server Man <dupastiy@proton.me>  Thu, 26 Feb 2026 11:46:00 +0000

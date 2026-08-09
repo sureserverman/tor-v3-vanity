@@ -1,0 +1,173 @@
+.TH T3V 1 "2026-08-09" "t3v 0.2.0" "User Commands"
+.SH NAME
+t3v \- generate Tor v3 vanity .onion addresses on NVIDIA GPUs
+.SH SYNOPSIS
+.B t3v
+.RI [ OPTIONS ]
+.I PREFIX
+.RI [, PREFIX ...]
+.SH DESCRIPTION
+.B t3v
+brute-forces Ed25519 keypairs on every detected CUDA device to find .onion v3
+addresses beginning with a chosen prefix. Each match is written to the
+destination directory as a Tor
+.B hs_ed25519_secret_key
+file named after the address it produces.
+.PP
+Positional prefixes are
+.IR required :
+the run exits as soon as every one has been found. Give several
+comma-separated.
+.PP
+Prefixes are case-insensitive and may only use the base32 alphabet
+.BR a\-z " and " 2\-7 .
+The digits
+.BR 0 ", " 1 ", " 8 " and " 9
+are never valid in an onion address. A prefix longer than 51 characters can
+never match and is rejected. Each additional character multiplies the expected
+search time by 32.
+.PP
+Every GPU match is re-derived independently on the CPU before anything is
+written, so a key whose address does not actually carry the requested prefix is
+discarded rather than saved.
+.SH OPTIONS
+.TP
+.BR \-d ", " \-\-dst " " \fIDIR\fR
+Directory to write keys into. Defaults to the current directory, which must
+already exist.
+.TP
+.BR \-\-bonus " " \fIPREFIX\fR[,\fIPREFIX\fR...]
+Additional prefixes to search for and save if they turn up, but which never
+keep the run alive on their own. Useful for a longer nice-to-have prefix you
+will take only if it happens to appear.
+.TP
+.BR \-\-count " " \fIN\fR
+Collect
+.I N
+matches of each prefix before considering it satisfied. Defaults to 1, and
+applies to bonus prefixes as well.
+.TP
+.BR \-\-algo " " \fIALGO\fR
+Search kernel to use.
+.RS
+.TP
+.B incremental
+Default. Each thread computes one point and then steps to the next candidate by
+point addition, with modular inversions batched. Roughly 200 times faster.
+Stores the secret scalar un-clamped \(em see
+.B UN-CLAMPED SCALARS
+below.
+.TP
+.B seed
+The original reference path: hash a fresh random seed per candidate, which
+costs a full scalar multiplication every time. Stores a clamped, SHA-512
+expanded scalar.
+.RE
+.TP
+.BR \-h ", " \-\-help
+Print help.
+.TP
+.BR \-V ", " \-\-version
+Print version.
+.SH OUTPUT
+On an interactive terminal
+.B t3v
+draws a live dashboard showing, per prefix,
+.B CHANCE
+\(em the probability a match has turned up by now \(em and
+.BR E[NEXT] ,
+the expected wait for the next one. The search draws a fresh random base every
+launch and so is memoryless:
+.B E[NEXT]
+stays constant rather than counting down, because running longer does not bring
+the next hit closer. When standard output is not a terminal, plain status lines
+are printed every 30 seconds instead.
+.PP
+Key files are created with mode 0600 and flushed to disk before being reported.
+An existing file is never overwritten.
+.SH UN-CLAMPED SCALARS
+Keys produced by the
+.B incremental
+kernel store the secret scalar directly, un-clamped, which is what Tor does
+with the on-disk key. Any tool that recovers the public key by clamping \(em
+including ed25519-dalek's ExpandedSecretKey conversion \(em will silently derive
+a
+.I different
+address from such a file. Tor itself is unaffected. Verify a key independently
+with the shipped example:
+.PP
+.RS
+.EX
+cargo run --release --example validate_key -- <keyfile>
+.EE
+.RE
+.SH RELATED KEYS
+Every candidate within one GPU launch is derived from a single random base, so
+two keys taken from the same launch would have secret scalars a small, easily
+searched distance apart \(em whoever held one could recover the other.
+.B t3v
+therefore keeps at most one match per launch and re-seeds before the next, so
+every key it writes is independent of every other. Matches discarded for this
+reason are counted and reported in the run summary.
+.SH ENVIRONMENT
+.TP
+.B T3V_ITERS
+Pin the number of keygen iterations each thread performs per launch and skip
+the startup autotune. Intended for benchmarking a specific value.
+.TP
+.B KERNEL_TARGET_CPU
+Build-time only. Minimum compute capability the PTX kernel targets, default
+.BR sm_75 .
+The driver JIT-compiles PTX to the installed GPU at load, so the default runs
+on Turing and newer. Do not raise it above the oldest GPU you intend to use.
+.SH EXIT STATUS
+.TP
+.B 0
+All required prefixes were found.
+.TP
+.B 1
+Every GPU worker stopped before the search finished; the underlying errors are
+printed.
+.TP
+.B 2
+Invalid arguments, or no CUDA device is available.
+.SH EXAMPLES
+Search for one prefix, writing keys into
+.IR mykeys/ :
+.PP
+.RS
+.EX
+t3v --dst mykeys/ myprefix
+.EE
+.RE
+.PP
+Search for two prefixes at once and take a longer one only if it appears:
+.PP
+.RS
+.EX
+t3v --dst mykeys/ shaonsen,paarth --bonus shaonsenllc
+.EE
+.RE
+.PP
+Collect three distinct addresses for the same prefix:
+.PP
+.RS
+.EX
+t3v --dst mykeys/ --count 3 myprefix
+.EE
+.RE
+.PP
+Install a generated key into a Tor hidden service directory:
+.PP
+.RS
+.EX
+cp mykeys/myprefix\....onion /var/lib/tor/hidden_service/hs_ed25519_secret_key
+.EE
+.RE
+.SH SEE ALSO
+.BR tor (1)
+.PP
+Project home: https://github.com/sureserverman/tor-v3-vanity
+.SH AUTHOR
+The incremental search kernel is a GPU port of the approach used by mkp224o
+(https://github.com/cathugger/mkp224o).

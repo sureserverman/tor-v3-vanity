@@ -433,13 +433,13 @@ enum Algo {
     /// Kept as the reference path.
     Seed,
     /// mkp224o-style (default): one scalarmult per thread, then enumerate by point
-    /// addition with batched inversion. ~30x+ faster; validated end-to-end (CPU
+    /// addition with batched inversion. ~200x faster; validated end-to-end (CPU
     /// oracle, GPU self-test, host verify-gate, and a real Tor load).
     Incremental,
 }
 
 #[derive(clap::Parser)]
-#[command(name = "t3v")]
+#[command(name = "t3v", version, about = "Tor v3 vanity .onion address generator (NVIDIA CUDA)")]
 struct Args {
     /// Required prefix(es) (comma-separated). The run exits once all of these are found.
     #[arg(required = true, value_delimiter(','))]
@@ -459,7 +459,7 @@ struct Args {
     #[arg(long, default_value_t = 1)]
     count: u64,
 
-    /// Search algorithm: `incremental` (mkp224o-style, default, ~30x+ faster) or
+    /// Search algorithm: `incremental` (mkp224o-style, default, ~200x faster) or
     /// `seed` (original reference path).
     #[arg(long, value_enum, default_value_t = Algo::Incremental)]
     algo: Algo,

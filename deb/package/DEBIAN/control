@@ -1,6 +1,25 @@
 Package: t3v
-Version: 0.1.2
-Maintainer: Server Man
+Version: 0.2.0
+Section: utils
+Priority: optional
+Maintainer: Server Man <dupastiy@proton.me>
 Architecture: amd64
-Description: Tor v3 vanity .onion address generator using NVIDIA CUDA GPUs
+Depends: libc6 (>= 2.34), libgcc-s1 (>= 3.0)
+Homepage: https://github.com/sureserverman/tor-v3-vanity
 Source: tor-v3-vanity
+Description: Tor v3 vanity .onion address generator using NVIDIA CUDA GPUs
+ t3v brute-forces Ed25519 keypairs on the GPU to find .onion v3 addresses
+ beginning with a chosen prefix, writing each one in Tor's
+ hs_ed25519_secret_key format, named after the address it produces.
+ .
+ Two search kernels are available. The default "incremental" kernel computes
+ one scalar multiplication per thread and then enumerates candidates by
+ repeated basepoint addition with batched modular inversion, roughly 200 times
+ faster than the "seed" kernel, which hashes a fresh seed per candidate and is
+ kept as a reference path. Several required and bonus prefixes can be searched
+ at once, and every GPU match is independently re-derived on the CPU before a
+ key is written to disk.
+ .
+ Requires an NVIDIA GPU of compute capability 7.5 (Turing) or newer and the
+ proprietary driver providing libcuda.so.1, which is not packaged here. Every
+ detected CUDA device is used automatically.
