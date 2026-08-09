@@ -52,6 +52,14 @@ fn main() {
     }
     println!("cargo:rerun-if-changed=core");
     println!("cargo:rerun-if-env-changed=KERNEL_PTX_PATH");
+    println!("cargo:rerun-if-env-changed=KERNEL_TARGET_CPU");
+
+    // Compute capability the kernel PTX targets. Defaults to sm_75: the driver JITs
+    // PTX to the installed GPU at load time and we use no arch-specific instructions,
+    // so a low target runs everywhere from Turing up (incl. Hopper) at full speed.
+    // The PTX `.target` is a *minimum*, so don't raise it above your oldest GPU.
+    let target_cpu = env::var("KERNEL_TARGET_CPU").unwrap_or_else(|_| "sm_75".into());
+    let target_cpu_flag = format!("-Ctarget-cpu={}", target_cpu);
 
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let target_dir = env::var("CARGO_TARGET_DIR")
@@ -83,8 +91,7 @@ fn main() {
             "link-self-contained=+linker",
             "-C",
             "linker-flavor=llbc",
-            "-C",
-            "target-cpu=sm_75",
+            target_cpu_flag.as_str(),
         ])
         .env("CARGO_TARGET_DIR", &kernel_target_dir)
         .current_dir(&manifest_dir)

@@ -21,11 +21,13 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1"
 base32 = "0.4"
-chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
 crossbeam-channel = "0.5"
+# Raw ed25519 group/scalar ops for the incremental algo: Tor uses the stored
+# scalar un-clamped, so the address is derived as scalar·B directly (not via
+# ed25519-dalek, which clamps).
+curve25519-dalek = "2"
 ed25519-dalek = "1.0.0-pre.4"
-num_cpus = "1"
 rand = "0.8"
 rustacuda = "0.1.2"
 sha3 = "0.10"
@@ -33,3 +35,7 @@ tor-v3-vanity-core = { version = "0.1.0", path = "./core" }
 
 [build-dependencies]
 glob = "0.3"
+
+[dev-dependencies]
+# sha2 is only used by the CPU oracles (hand-rolled RFC8032 signing).
+sha2 = "0.9"
