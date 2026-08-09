@@ -91,9 +91,24 @@ fn main() {
             "link-self-contained=+linker",
             "-C",
             "linker-flavor=llbc",
-            target_cpu_flag.as_str(),
         ])
         .env("CARGO_TARGET_DIR", &kernel_target_dir)
+        // -Ctarget-cpu goes through RUSTFLAGS, not `cargo rustc -- <flag>`, because
+        // the latter applies it to this crate alone. rustc treats target-cpu as
+        // ABI-affecting, so from nightly-2026-08 a crate built with it can no longer
+        // link against dependencies built without it:
+        //   error: mixing `-Ctarget-cpu` will cause an ABI mismatch in crate
+        //   `tor_v3_vanity_core` ... incompatible with `-Ctarget-cpu` being unset in
+        //   dependency `byteorder`
+        // RUSTFLAGS reaches every crate in the kernel build, including the
+        // build-std copies of core, so they all agree.
+        //
+        // CARGO_ENCODED_RUSTFLAGS rather than RUSTFLAGS, and RUSTFLAGS cleared:
+        // cargo prefers the encoded form, and the outer build sets it whenever the
+        // user has RUSTFLAGS in their environment, which would otherwise silently
+        // win over ours.
+        .env("CARGO_ENCODED_RUSTFLAGS", &target_cpu_flag)
+        .env_remove("RUSTFLAGS")
         .current_dir(&manifest_dir)
         .status();
 
@@ -116,20 +131,32 @@ fn main() {
         panic!("kernel build failed");
     }
 
-    // Find the generated .ptx (llbc produces PTX for cdylib)
+    // Find the generated .ptx (llbc produces PTX for cdylib). Which of these two
+    // directories holds it depends on the toolchain: older nightlies left the
+    // artifact in deps/, current ones put the cdylib output directly in the target
+    // directory. Look in both rather than depending on that detail.
     let deps = nvptx_dir.join("deps");
-    let pattern = deps.join("*.ptx");
-    let pattern = pattern.to_str().expect("path is valid UTF-8");
-    let ptx_path = glob::glob(pattern)
-        .ok()
-        .and_then(|mut g| g.next())
-        .and_then(|e| e.ok());
+    let find_ptx = |dir: &PathBuf| -> Option<PathBuf> {
+        let pattern = dir.join("*.ptx");
+        glob::glob(pattern.to_str().expect("path is valid UTF-8"))
+            .ok()
+            .and_then(|mut g| g.next())
+            .and_then(|e| e.ok())
+    };
 
-    let ptx_path = match ptx_path {
+    let ptx_path = match find_ptx(&deps).or_else(|| find_ptx(&nvptx_dir)) {
         Some(p) => p,
         None => {
-            eprintln!("cargo:warning=No .ptx found under {}", deps.display());
-            panic!("kernel build did not produce a .ptx file under {}", deps.display());
+            eprintln!(
+                "cargo:warning=No .ptx found under {} or {}",
+                deps.display(),
+                nvptx_dir.display()
+            );
+            panic!(
+                "kernel build did not produce a .ptx file under {} or {}",
+                deps.display(),
+                nvptx_dir.display()
+            );
         }
     };
 
