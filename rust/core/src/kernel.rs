@@ -46,11 +46,7 @@ pub extern "ptx-kernel" fn render(params_ptr: *mut KernelParams) {
 
         for byte_prefix in byte_prefixes.iter_mut() {
             if byte_prefix.matches(&*kp.pk) {
-                let out =
-                    unsafe { core::slice::from_raw_parts_mut(byte_prefix.out.as_raw_mut(), 32) };
-                out.clone_from_slice(&cur_seed);
-                let success = unsafe { &mut *byte_prefix.success.as_raw_mut() };
-                *success = true;
+                byte_prefix.record(&cur_seed);
             }
         }
         idx = idx.wrapping_add(stride);
@@ -468,12 +464,7 @@ pub extern "ptx-kernel" fn render_incremental(params_ptr: *mut KernelParams) {
                 if byte_prefix.matches(&yb) {
                     // Store the raw scalar (base + offset + j + i); host reduces mod L.
                     let scalar = add_u256(base, offset + j + i as u64);
-                    let out = unsafe {
-                        core::slice::from_raw_parts_mut(byte_prefix.out.as_raw_mut(), 32)
-                    };
-                    out.clone_from_slice(&scalar);
-                    let success = unsafe { &mut *byte_prefix.success.as_raw_mut() };
-                    *success = true;
+                    byte_prefix.record(&scalar);
                 }
             }
             i += 1;
@@ -505,11 +496,7 @@ pub extern "ptx-kernel" fn selftest(params_ptr: *mut KernelParams) {
     let byte_prefixes = unsafe {
         core::slice::from_raw_parts_mut(params.byte_prefixes.as_raw_mut(), params.byte_prefixes_len)
     };
-    let bp = &mut byte_prefixes[0];
-    let out = unsafe { core::slice::from_raw_parts_mut(bp.out.as_raw_mut(), 32) };
-    out.clone_from_slice(&c);
-    let success = unsafe { &mut *bp.success.as_raw_mut() };
-    *success = true;
+    byte_prefixes[0].record(&c);
 }
 
 #[panic_handler]

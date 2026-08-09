@@ -35,8 +35,9 @@ fn main() {
 
         let mut gpu_seed = DeviceBuffer::from_slice(&s).unwrap();
         let mut dummy = DeviceBuffer::from_slice(&[0u8; 1]).unwrap();
-        let mut out_buf = DeviceBuffer::from_slice(&[0u8; 32]).unwrap();
-        let mut success = DeviceBox::new(&false).unwrap();
+        let mut out_buf =
+            DeviceBuffer::from_slice(&vec![0u8; core::OUT_SLOTS as usize * 32]).unwrap();
+        let mut found = DeviceBox::new(&0u32).unwrap();
 
         let bp = core::BytePrefix {
             byte_prefix: dummy.as_device_ptr(),
@@ -44,7 +45,7 @@ fn main() {
             last_byte_idx: 0,
             last_byte_mask: 0,
             out: out_buf.as_device_ptr(),
-            success: success.as_device_ptr(),
+            found: found.as_device_ptr(),
         };
         let mut gpu_bps = DeviceBuffer::from_slice(&[bp]).unwrap();
         let mut params = DeviceBox::new(&core::KernelParams {
@@ -60,8 +61,11 @@ fn main() {
         }
         stream.synchronize().unwrap();
 
+        // The kernel writes into slot 0 of the ring; only that slot is of interest.
+        let mut ring = vec![0u8; core::OUT_SLOTS as usize * 32];
+        out_buf.copy_to(&mut ring).unwrap();
         let mut gpu_pub = [0u8; 32];
-        out_buf.copy_to(&mut gpu_pub).unwrap();
+        gpu_pub.copy_from_slice(&ring[..32]);
 
         let scalar = Scalar::from_bytes_mod_order(s) + Scalar::from(walk);
         let want = (&scalar * &ED25519_BASEPOINT_TABLE).compress().to_bytes();

@@ -133,7 +133,7 @@ place:
 tor-v3-vanity · 8×GPU · 00:01:11
 1.35 T keys · 19.21 G/s (avg 19.04 G/s)
 
-PREFIX                  FOUND     PROGRESS       ETA
+PREFIX                  FOUND       CHANCE   E[NEXT]
 shaonsenllc               0/1       0.004%     21.9d
 paarthshah                0/1       0.120%     16.4h
 
@@ -165,7 +165,17 @@ t3v --dst mykeys/ shaonsen --bonus shaonsenllc
 The moment `shaonsen` is found, t3v writes both keys it managed to collect, prints a
 summary, and exits — it won't keep grinding for years just for the bonus. List
 multiple of either kind comma-separated (`a,b,c`). Use **`--count N`** to collect N
-matches of each prefix before considering it satisfied (default 1).
+matches of each prefix before considering it satisfied (default 1); `--count`
+applies to bonus prefixes too, though they never gate the exit.
+
+Prefixes are case-insensitive (onion addresses are lowercase) and may only use the
+base32 alphabet `a–z` and `2–7` — `0`, `1`, `8` and `9` are never valid. Anything
+else is rejected before the search starts.
+
+Progress is reported as **CHANCE** — the probability a match has turned up by now —
+and **E\[NEXT\]**, the expected wait for the next one. The search draws a fresh
+random base every launch, so it is memoryless: `E[NEXT]` stays constant rather than
+counting down, because running longer genuinely does not bring the next hit closer.
 
 ## Search algorithm (`--algo`)
 
@@ -195,10 +205,38 @@ rather than saved.
 t3v --algo incremental --dst mykeys/ myprefix
 ```
 
-Note: with a *very* short, frequently-matching prefix (≈4 chars), many threads can
-match within one launch and race on the shared output slot; such torn matches are
-detected and discarded by the host re-derivation (never written wrong). For real
-prefix lengths this never occurs.
+### Un-clamped scalars: read this before using another tool on these keys
+
+`--algo incremental` stores the secret **scalar** directly, un-clamped — which is
+what Tor does with the on-disk key, and what makes the algorithm possible at all.
+`--algo seed` stores a clamped, SHA-512-expanded scalar instead, so the two
+algorithms produce structurally different (both valid) key files.
+
+The consequence: **any tool that recovers the public key by clamping will derive
+the wrong address from an incremental-generated key file, silently.** That includes
+`ed25519-dalek`'s `ExpandedSecretKey → PublicKey`, which this repo's own `seed`
+path uses. Tor itself is unaffected. To check a key independently:
+
+```bash
+cargo run --release --example validate_key -- mykeys/<address>.onion
+```
+
+### Why only one key per launch is kept
+
+Every candidate within a single GPU launch is `base + k` for one random `base`, so
+two keys harvested from the same launch have secret scalars that differ by a small,
+searchable amount — whoever holds one could recover the other in seconds. t3v
+therefore keeps at most one match per launch and re-seeds before the next, so every
+key it writes is independent of every other. Discarded matches are counted and
+reported in the run summary rather than dropped silently.
+
+This costs nothing at realistic prefix lengths (a launch almost never contains two
+matches), but it does mean `--count N` on a very short prefix collects roughly one
+key per launch.
+
+Within a launch, matches are written to a per-prefix ring of slots claimed with an
+atomic increment, so concurrent matches never overwrite one another. Every key is
+still re-derived on the host before being written.
 
 Tuning knobs:
 
