@@ -18,6 +18,19 @@ path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+# Opt-in A/B harness for the isolated cuda-oxide spike in `oxide_spike/`.
+# Does not change the default NVPTX/rustacuda build or dependency graph.
+# Enables `examples/ab_nvptx_baseline.rs` only. The oxide port itself is a
+# sibling crate built with `cargo oxide` — see docs/cuda-oxide-spike.md.
+cuda-oxide = []
+
+[[example]]
+name = "ab_nvptx_baseline"
+path = "examples/ab_nvptx_baseline.rs"
+required-features = ["cuda-oxide"]
+
 [dependencies]
 anyhow = "1"
 base32 = "0.4"

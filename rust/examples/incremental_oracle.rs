@@ -67,11 +67,11 @@ fn raw_sign(a: &Scalar, nonce: &[u8; 32], a_pub: &[u8; 32], msg: &[u8]) -> [u8; 
 
 /// Standard ed25519 verification: check S·B == R + k·A.
 fn verify(a_point: &EdwardsPoint, a_pub: &[u8; 32], msg: &[u8], sig: &[u8; 64]) -> bool {
-    let big_r = match curve25519_dalek::edwards::CompressedEdwardsY::from_slice(&sig[..32]).decompress()
-    {
-        Some(p) => p,
-        None => return false,
-    };
+    let big_r =
+        match curve25519_dalek::edwards::CompressedEdwardsY::from_slice(&sig[..32]).decompress() {
+            Some(p) => p,
+            None => return false,
+        };
     let mut s_bytes = [0u8; 32];
     s_bytes.copy_from_slice(&sig[32..]);
     let s = match Scalar::from_canonical_bytes(s_bytes) {
@@ -138,7 +138,9 @@ fn main() {
             reloaded.copy_from_slice(&file[32..64]);
             let scalar_reloaded =
                 Scalar::from_canonical_bytes(reloaded).expect("stored scalar is canonical");
-            let pub_reloaded = (&scalar_reloaded * &ED25519_BASEPOINT_TABLE).compress().to_bytes();
+            let pub_reloaded = (&scalar_reloaded * &ED25519_BASEPOINT_TABLE)
+                .compress()
+                .to_bytes();
             assert_eq!(
                 pubkey_to_onion(&pub_reloaded),
                 sample_onion,

@@ -20,8 +20,8 @@ fn hex(b: &[u8]) -> String {
 fn main() {
     rustacuda::init(CudaFlags::empty()).unwrap();
     let device = Device::get_device(0).unwrap();
-    let _ctx =
-        Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device).unwrap();
+    let _ctx = Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device)
+        .unwrap();
     let module_data = CString::new(include_str!(env!("KERNEL_PTX_PATH"))).unwrap();
     let module = Module::load_from_string(&module_data).unwrap();
     let stream = Stream::new(StreamFlags::NON_BLOCKING, None).unwrap();

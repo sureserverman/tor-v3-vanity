@@ -41,7 +41,11 @@ fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
 fn main() {
     let path = std::env::args().nth(1).expect("usage: validate_key <file>");
     let bytes = std::fs::read(&path).expect("read key file");
-    assert_eq!(bytes.len(), 96, "expected 32-byte header + 64-byte expanded key");
+    assert_eq!(
+        bytes.len(),
+        96,
+        "expected 32-byte header + 64-byte expanded key"
+    );
     assert_eq!(&bytes[..32], HEADER, "bad Tor secret-key header");
 
     let mut scalar_bytes = [0u8; 32];
