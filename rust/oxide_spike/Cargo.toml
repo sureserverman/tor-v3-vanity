@@ -1,0 +1,22 @@
+[package]
+name = "oxide_spike"
+version = "0.1.0"
+edition = "2024"
+description = "Feature-isolated cuda-oxide v0.3.0 spike of tor-v3-vanity's incremental search kernel"
+license = "MIT"
+publish = false
+
+# Standalone crate: not part of the parent tor-v3-vanity package graph.
+# Build with `cargo oxide` (Rust 1.99.1), never with the parent's nightly NVPTX path.
+[workspace]
+
+[dependencies]
+# Pin the cuda-oxide/v0.3.0 monorepo tag. cuda-host pulls cuda-core by path inside
+# that checkout, so all three crates must resolve from the same git rev — a
+# crates.io cuda-core would be a second, incompatible type universe.
+cuda-device = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
+cuda-host = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
+cuda-core = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
+
+# Host-only: re-derive pubkeys from dumped scalars to cross-check prefixes.
+curve25519-dalek = "2"
