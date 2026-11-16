@@ -14,7 +14,7 @@ pub fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(b".onion checksum");
     hasher.update(pubkey);
-    hasher.update(&[3]);
+    hasher.update([3]);
     let mut onion = [0; 35];
     onion[..32].clone_from_slice(pubkey);
     onion[32..34].clone_from_slice(&hasher.finalize()[..2]);
@@ -94,9 +94,10 @@ impl BytePrefixOwned {
             byte_prefix: rustacuda::memory::DeviceBuffer::from_slice(&byte_prefix)?,
             last_byte_idx,
             last_byte_mask,
-            out: rustacuda::memory::DeviceBuffer::from_slice(
-                &vec![0u8; core::OUT_SLOTS as usize * 32],
-            )?,
+            out: rustacuda::memory::DeviceBuffer::from_slice(&vec![
+                0u8;
+                core::OUT_SLOTS as usize * 32
+            ])?,
             found: rustacuda::memory::DeviceBox::new(&0u32)?,
         })
     }
@@ -126,7 +127,9 @@ impl BytePrefixOwned {
         let mut raw = vec![0u8; core::OUT_SLOTS as usize * 32];
         self.out.copy_to(&mut raw)?;
         let results = raw
-            .chunks_exact(32)
+            .as_chunks::<32>()
+            .0
+            .iter()
             .take(stored)
             .map(|c| {
                 let mut a = [0u8; 32];
@@ -424,7 +427,7 @@ fn run_device(
     Ok(())
 }
 
-const FILE_PREFIX: &'static [u8] = b"== ed25519v1-secret: type0 ==\0\0\0";
+const FILE_PREFIX: &[u8] = b"== ed25519v1-secret: type0 ==\0\0\0";
 
 /// Search algorithm / GPU kernel selection.
 #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
@@ -439,7 +442,11 @@ enum Algo {
 }
 
 #[derive(clap::Parser)]
-#[command(name = "t3v", version, about = "Tor v3 vanity .onion address generator (NVIDIA CUDA)")]
+#[command(
+    name = "t3v",
+    version,
+    about = "Tor v3 vanity .onion address generator (NVIDIA CUDA)"
+)]
 struct Args {
     /// Required prefix(es) (comma-separated). The run exits once all of these are found.
     #[arg(required = true, value_delimiter(','))]
@@ -680,9 +687,16 @@ fn main() {
     );
     for (i, p) in shared.prefixes.iter().enumerate() {
         let n = shared.found[i].load(Ordering::Relaxed);
-        let kind = if shared.required[i] { "required" } else { "bonus" };
+        let kind = if shared.required[i] {
+            "required"
+        } else {
+            "bonus"
+        };
         let mark = if n > 0 { "✔" } else { "·" };
-        println!("  {} {:<18} {:>8}  found {}/{}", mark, p, kind, n, shared.target);
+        println!(
+            "  {} {:<18} {:>8}  found {}/{}",
+            mark, p, kind, n, shared.target
+        );
     }
     let dropped = shared.dropped_correlated.load(Ordering::Relaxed);
     if dropped > 0 {
@@ -750,7 +764,13 @@ fn reporter_tty(shared: Arc<Shared>, log_rx: crossbeam_channel::Receiver<String>
         let dt = now.duration_since(last_t).as_secs_f64();
         let total = shared.total_keys();
         if dt >= WINDOW {
-            let ema = |prev: f64, raw: f64| if prev <= 0.0 { raw } else { ALPHA * raw + (1.0 - ALPHA) * prev };
+            let ema = |prev: f64, raw: f64| {
+                if prev <= 0.0 {
+                    raw
+                } else {
+                    ALPHA * raw + (1.0 - ALPHA) * prev
+                }
+            };
             inst_rate = ema(inst_rate, total.saturating_sub(last_total) as f64 / dt);
             for i in 0..n {
                 let k = shared.devices[i].keys.load(Ordering::Relaxed);
@@ -803,7 +823,11 @@ fn reporter_plain(shared: Arc<Shared>, log_rx: crossbeam_channel::Receiver<Strin
             let elapsed = shared.start.elapsed().as_secs_f64();
             let total = shared.total_keys();
             let inst = total.saturating_sub(last_total) as f64 / last.elapsed().as_secs_f64();
-            let avg = if elapsed > 0.0 { total as f64 / elapsed } else { 0.0 };
+            let avg = if elapsed > 0.0 {
+                total as f64 / elapsed
+            } else {
+                0.0
+            };
             println!(
                 "[{}] {} keys · {} (avg {})",
                 fmt_clock(elapsed),
@@ -834,7 +858,11 @@ fn reporter_plain(shared: Arc<Shared>, log_rx: crossbeam_channel::Receiver<Strin
 
 fn render_status(shared: &Shared, total: u64, inst_rate: f64, dev_rate: &[f64]) -> String {
     let elapsed = shared.start.elapsed().as_secs_f64();
-    let avg = if elapsed > 0.0 { total as f64 / elapsed } else { 0.0 };
+    let avg = if elapsed > 0.0 {
+        total as f64 / elapsed
+    } else {
+        0.0
+    };
     let n = shared.devices.len();
 
     let mut s = String::new();
@@ -872,12 +900,15 @@ fn render_status(shared: &Shared, total: u64, inst_rate: f64, dev_rate: &[f64]) 
             let (chance, eta) = odds(p.len(), total, avg);
             (fmt_pct(chance), fmt_eta(eta))
         };
-        let _ = writeln!(s, "{:<22}{:>7}{:>13}{:>10}", name, found_col, prog_col, eta_col);
+        let _ = writeln!(
+            s,
+            "{:<22}{:>7}{:>13}{:>10}",
+            name, found_col, prog_col, eta_col
+        );
     }
     let _ = writeln!(s);
     let _ = writeln!(s, "\x1b[1m{:>3}{:>10}{:>13}\x1b[0m", "GPU", "ITERS", "RATE");
-    for i in 0..n {
-        let st = &shared.devices[i];
+    for (i, st) in shared.devices.iter().enumerate().take(n) {
         if st.calibrating.load(Ordering::Relaxed) {
             let _ = writeln!(s, "{:>3}{:>10}{:>13}", i, "—", "tuning…");
         } else {

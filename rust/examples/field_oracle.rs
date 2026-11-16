@@ -64,10 +64,20 @@ struct Pt {
 }
 
 fn identity() -> Pt {
-    Pt { x: [0; 5], y: ONE, z: ONE, t: [0; 5] }
+    Pt {
+        x: [0; 5],
+        y: ONE,
+        z: ONE,
+        t: [0; 5],
+    }
 }
 fn basepoint() -> Pt {
-    Pt { x: BX, y: BY, z: ONE, t: BT }
+    Pt {
+        x: BX,
+        y: BY,
+        z: ONE,
+        t: BT,
+    }
 }
 
 // Single-pass weak reduction: limbs in -> limbs < ~2^51.

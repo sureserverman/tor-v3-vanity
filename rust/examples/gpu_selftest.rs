@@ -20,16 +20,15 @@ fn hex(b: &[u8]) -> String {
 fn main() {
     rustacuda::init(CudaFlags::empty()).unwrap();
     let device = Device::get_device(0).unwrap();
-    let _ctx =
-        Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device).unwrap();
+    let _ctx = Context::create_and_push(ContextFlags::MAP_HOST | ContextFlags::SCHED_AUTO, device)
+        .unwrap();
     let module_data = CString::new(include_str!(env!("KERNEL_PTX_PATH"))).unwrap();
     let module = Module::load_from_string(&module_data).unwrap();
     let stream = Stream::new(StreamFlags::NON_BLOCKING, None).unwrap();
 
     let walks: [u64; 8] = [0, 1, 2, 5, 100, 1000, 65537, 1_000_000];
     let mut fails = 0;
-    for trial in 0..8 {
-        let walk = walks[trial];
+    for (trial, &walk) in walks.iter().enumerate() {
         let mut s = [0u8; 32];
         rand::thread_rng().fill_bytes(&mut s);
 

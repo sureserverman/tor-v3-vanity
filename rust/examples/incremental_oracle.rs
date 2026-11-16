@@ -41,7 +41,7 @@ fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(b".onion checksum");
     hasher.update(pubkey);
-    hasher.update(&[3]);
+    hasher.update([3]);
     let mut onion = [0u8; 35];
     onion[..32].copy_from_slice(pubkey);
     onion[32..34].copy_from_slice(&hasher.finalize()[..2]);
@@ -67,11 +67,11 @@ fn raw_sign(a: &Scalar, nonce: &[u8; 32], a_pub: &[u8; 32], msg: &[u8]) -> [u8; 
 
 /// Standard ed25519 verification: check S·B == R + k·A.
 fn verify(a_point: &EdwardsPoint, a_pub: &[u8; 32], msg: &[u8], sig: &[u8; 64]) -> bool {
-    let big_r = match curve25519_dalek::edwards::CompressedEdwardsY::from_slice(&sig[..32]).decompress()
-    {
-        Some(p) => p,
-        None => return false,
-    };
+    let big_r =
+        match curve25519_dalek::edwards::CompressedEdwardsY::from_slice(&sig[..32]).decompress() {
+            Some(p) => p,
+            None => return false,
+        };
     let mut s_bytes = [0u8; 32];
     s_bytes.copy_from_slice(&sig[32..]);
     let s = match Scalar::from_canonical_bytes(s_bytes) {
@@ -79,7 +79,7 @@ fn verify(a_point: &EdwardsPoint, a_pub: &[u8; 32], msg: &[u8], sig: &[u8; 64]) 
         None => return false,
     };
     let k = Scalar::from_bytes_mod_order_wide(&sha512_wide(&[&sig[..32], a_pub, msg]));
-    (&s * &ED25519_BASEPOINT_TABLE) == (big_r + &k * a_point)
+    (&s * &ED25519_BASEPOINT_TABLE) == (big_r + k * a_point)
 }
 
 fn main() {
@@ -138,7 +138,9 @@ fn main() {
             reloaded.copy_from_slice(&file[32..64]);
             let scalar_reloaded =
                 Scalar::from_canonical_bytes(reloaded).expect("stored scalar is canonical");
-            let pub_reloaded = (&scalar_reloaded * &ED25519_BASEPOINT_TABLE).compress().to_bytes();
+            let pub_reloaded = (&scalar_reloaded * &ED25519_BASEPOINT_TABLE)
+                .compress()
+                .to_bytes();
             assert_eq!(
                 pubkey_to_onion(&pub_reloaded),
                 sample_onion,
@@ -146,7 +148,7 @@ fn main() {
             );
         }
 
-        point = point + basepoint;
+        point += basepoint;
     }
 
     println!("OK: {STEPS} incremental keys validated.");

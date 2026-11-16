@@ -72,7 +72,9 @@ fn main() {
         .join("nvptx64-nvidia-cuda")
         .join("release");
 
-    eprintln!("Building PTX kernel for nvptx64-nvidia-cuda (first time can take several minutes)...");
+    eprintln!(
+        "Building PTX kernel for nvptx64-nvidia-cuda (first time can take several minutes)..."
+    );
 
     let status = Command::new(env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
         .args([
