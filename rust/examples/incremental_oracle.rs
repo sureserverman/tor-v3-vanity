@@ -41,7 +41,7 @@ fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(b".onion checksum");
     hasher.update(pubkey);
-    hasher.update(&[3]);
+    hasher.update([3]);
     let mut onion = [0u8; 35];
     onion[..32].copy_from_slice(pubkey);
     onion[32..34].copy_from_slice(&hasher.finalize()[..2]);
@@ -79,7 +79,7 @@ fn verify(a_point: &EdwardsPoint, a_pub: &[u8; 32], msg: &[u8], sig: &[u8; 64]) 
         None => return false,
     };
     let k = Scalar::from_bytes_mod_order_wide(&sha512_wide(&[&sig[..32], a_pub, msg]));
-    (&s * &ED25519_BASEPOINT_TABLE) == (big_r + &k * a_point)
+    (&s * &ED25519_BASEPOINT_TABLE) == (big_r + k * a_point)
 }
 
 fn main() {
@@ -148,7 +148,7 @@ fn main() {
             );
         }
 
-        point = point + basepoint;
+        point += basepoint;
     }
 
     println!("OK: {STEPS} incremental keys validated.");

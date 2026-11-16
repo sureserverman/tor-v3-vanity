@@ -2,7 +2,7 @@
 name = "oxide_spike"
 version = "0.1.0"
 edition = "2024"
-description = "Feature-isolated cuda-oxide v0.3.0 spike of tor-v3-vanity's incremental search kernel"
+description = "Feature-isolated cuda-oxide v0.4.0 spike of tor-v3-vanity's incremental search kernel"
 license = "MIT"
 publish = false
 
@@ -11,12 +11,14 @@ publish = false
 [workspace]
 
 [dependencies]
-# Pin the cuda-oxide/v0.3.0 monorepo tag. cuda-host pulls cuda-core by path inside
+# Pin the cuda-oxide/v0.4.0 monorepo tag. cuda-host pulls cuda-core by path inside
 # that checkout, so all three crates must resolve from the same git rev — a
 # crates.io cuda-core would be a second, incompatible type universe.
-cuda-device = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
-cuda-host = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
-cuda-core = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.3.0" }
+# Companion versions at this tag: cuda-device/cuda-host/cuda-macros 0.4.0,
+# shared host runtime cuda-core 0.5.0.
+cuda-device = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.4.0" }
+cuda-host = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.4.0" }
+cuda-core = { git = "https://github.com/NVIDIA/cuda-rust.git", tag = "cuda-oxide/v0.4.0" }
 
 # Host-only: re-derive pubkeys from dumped scalars to cross-check prefixes.
 curve25519-dalek = "2"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # A/B: NVPTX baseline dump vs cuda-oxide spike dump for the fixed seed.
-# Requires a GPU, nightly+NVPTX toolchain, and cargo-oxide + Rust 1.99.1.
+# Requires a GPU, nightly+NVPTX toolchain, and cargo-oxide + Rust 1.99.1
+# (cuda-oxide/v0.4.0). Also builds oxide PTX and runs the .local spill check.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,6 +18,13 @@ export PATH="${PATH}:/usr/local/cuda/bin"
 if [[ -z "${CUDA_LIB_DIR:-}" && -e /usr/local/cuda/lib64/stubs/libcuda.so ]]; then
   export CUDA_LIB_DIR=/usr/local/cuda/lib64/stubs
 fi
+
+echo "== cuda-oxide build + PTX .local check =="
+(
+  cd oxide_spike
+  cargo oxide build --arch "${OXIDE_ARCH:-sm_75}"
+  ./scripts/check-ptx-local.sh
+)
 
 echo "== NVPTX baseline (features=cuda-oxide example) =="
 cargo +nightly run --release --example ab_nvptx_baseline --features cuda-oxide \

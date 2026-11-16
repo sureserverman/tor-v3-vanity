@@ -28,8 +28,7 @@ fn main() {
 
     let walks: [u64; 8] = [0, 1, 2, 5, 100, 1000, 65537, 1_000_000];
     let mut fails = 0;
-    for trial in 0..8 {
-        let walk = walks[trial];
+    for (trial, &walk) in walks.iter().enumerate() {
         let mut s = [0u8; 32];
         rand::thread_rng().fill_bytes(&mut s);
 

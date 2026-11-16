@@ -27,7 +27,7 @@ fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(b".onion checksum");
     hasher.update(pubkey);
-    hasher.update(&[3]);
+    hasher.update([3]);
     let mut onion = [0u8; 35];
     onion[..32].copy_from_slice(pubkey);
     onion[32..34].copy_from_slice(&hasher.finalize()[..2]);
@@ -74,7 +74,7 @@ fn main() {
     let s = r + k * scalar;
 
     let big_r_pt = CompressedEdwardsY::from_slice(&big_r).decompress().unwrap();
-    let ok = (&s * &ED25519_BASEPOINT_TABLE) == big_r_pt + &k * a_point;
+    let ok = (&s * &ED25519_BASEPOINT_TABLE) == big_r_pt + k * a_point;
     assert!(ok, "signature failed to verify");
 
     println!("VALID ✔");

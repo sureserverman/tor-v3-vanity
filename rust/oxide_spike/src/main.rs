@@ -1,10 +1,12 @@
-//! cuda-oxide v0.3.0 spike of tor-v3-vanity's incremental (mkp224o-style) search kernel.
+//! cuda-oxide v0.4.0 spike of tor-v3-vanity's incremental (mkp224o-style) search kernel.
 //!
 //! Isolated from the default NVPTX/`rustacuda` path. Build and run with:
 //!
 //! ```text
 //! cd rust/oxide_spike
 //! cargo oxide doctor
+//! cargo oxide build --arch sm_75
+//! ./scripts/check-ptx-local.sh
 //! cargo oxide run -- check    # correctness vs CPU for a fixed seed
 //! cargo oxide run -- dump     # print found scalars (hex) for A/B vs NVPTX
 //! cargo oxide run -- bench    # keys/s throughput sample
@@ -12,6 +14,10 @@
 //!
 //! Compare `dump` output against the parent crate's feature-gated baseline:
 //! `cargo +nightly run --release --example ab_nvptx_baseline --features cuda-oxide`
+//!
+//! Device-code caveats avoided for v0.4.0: no `mem::zeroed` / `MaybeUninit::zeroed`
+//! / slice `fill` (#1752), no `libm::sqrt` (#1704), no `black_box` (#1822).
+//! Window Fe arrays use explicit `[0; N]` init; see #1815 re: `.local` spills.
 
 use std::env;
 use std::time::Instant;

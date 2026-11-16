@@ -14,7 +14,7 @@ pub fn pubkey_to_onion(pubkey: &[u8; 32]) -> String {
     let mut hasher = Sha3_256::new();
     hasher.update(b".onion checksum");
     hasher.update(pubkey);
-    hasher.update(&[3]);
+    hasher.update([3]);
     let mut onion = [0; 35];
     onion[..32].clone_from_slice(pubkey);
     onion[32..34].clone_from_slice(&hasher.finalize()[..2]);
@@ -127,7 +127,9 @@ impl BytePrefixOwned {
         let mut raw = vec![0u8; core::OUT_SLOTS as usize * 32];
         self.out.copy_to(&mut raw)?;
         let results = raw
-            .chunks_exact(32)
+            .as_chunks::<32>()
+            .0
+            .iter()
             .take(stored)
             .map(|c| {
                 let mut a = [0u8; 32];
@@ -425,7 +427,7 @@ fn run_device(
     Ok(())
 }
 
-const FILE_PREFIX: &'static [u8] = b"== ed25519v1-secret: type0 ==\0\0\0";
+const FILE_PREFIX: &[u8] = b"== ed25519v1-secret: type0 ==\0\0\0";
 
 /// Search algorithm / GPU kernel selection.
 #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
@@ -906,8 +908,7 @@ fn render_status(shared: &Shared, total: u64, inst_rate: f64, dev_rate: &[f64]) 
     }
     let _ = writeln!(s);
     let _ = writeln!(s, "\x1b[1m{:>3}{:>10}{:>13}\x1b[0m", "GPU", "ITERS", "RATE");
-    for i in 0..n {
-        let st = &shared.devices[i];
+    for (i, st) in shared.devices.iter().enumerate().take(n) {
         if st.calibrating.load(Ordering::Relaxed) {
             let _ = writeln!(s, "{:>3}{:>10}{:>13}", i, "—", "tuning…");
         } else {

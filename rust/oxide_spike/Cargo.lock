@@ -69,7 +69,7 @@ checksum = "6a1f896587b6f2c069c73d2f0913e2d590c3990285cd2f0b6aa02b786b4c679c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -115,9 +115,9 @@ dependencies = [
 
 [[package]]
 name = "crc32fast"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f97d3416d5337d15c4b0d78c8c91df922ca143f57ec20e2d1c188333047ef04"
+checksum = "2b929dd2a135771f40afabd1073f85eed59c800b7c61901e5c254270497dad64"
 dependencies = [
  "cfg-if",
 ]
@@ -140,11 +140,12 @@ dependencies = [
 
 [[package]]
 name = "cuda-artifact-finalizer"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "libnvvm-sys",
  "nvjitlink-sys",
+ "ptx-parse",
  "serde",
  "sha2",
  "thiserror",
@@ -153,7 +154,7 @@ dependencies = [
 [[package]]
 name = "cuda-bindings"
 version = "0.5.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "bindgen",
  "libloading",
@@ -166,7 +167,7 @@ dependencies = [
 [[package]]
 name = "cuda-core"
 version = "0.5.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -180,7 +181,7 @@ dependencies = [
 [[package]]
 name = "cuda-core-derive"
 version = "0.5.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -189,8 +190,8 @@ dependencies = [
 
 [[package]]
 name = "cuda-device"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "bytemuck",
  "cuda-macros",
@@ -199,8 +200,8 @@ dependencies = [
 
 [[package]]
 name = "cuda-host"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "cuda-artifact-finalizer",
  "cuda-core",
@@ -216,8 +217,8 @@ dependencies = [
 
 [[package]]
 name = "cuda-macros"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "oxide-tile-export",
  "proc-macro2",
@@ -229,12 +230,12 @@ dependencies = [
 [[package]]
 name = "cuda-repr"
 version = "0.5.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 
 [[package]]
 name = "cuda-target-spec"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 
 [[package]]
 name = "curve25519-dalek"
@@ -370,9 +371,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
 name = "libc"
@@ -392,8 +393,8 @@ dependencies = [
 
 [[package]]
 name = "libnvvm-sys"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "cuda-target-spec",
  "libloading",
@@ -430,8 +431,8 @@ dependencies = [
 
 [[package]]
 name = "nvjitlink-sys"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "libloading",
  "thiserror",
@@ -460,8 +461,8 @@ dependencies = [
 
 [[package]]
 name = "oxide-tile-export"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 dependencies = [
  "serde",
  "serde_json",
@@ -499,8 +500,8 @@ dependencies = [
 
 [[package]]
 name = "ptx-parse"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 
 [[package]]
 name = "quote"
@@ -551,8 +552,8 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "reserved-oxide-symbols"
-version = "0.3.0"
-source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.3.0#99e571f49baaefe4cd69157950c89ac9d4012728"
+version = "0.4.0"
+source = "git+https://github.com/NVIDIA/cuda-rust.git?tag=cuda-oxide%2Fv0.4.0#9d0c9bfbc954a9a29565ab81b78da70f054d8e04"
 
 [[package]]
 name = "rustc-hash"
@@ -587,7 +588,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -639,9 +640,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.9"
+version = "3.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b"
+checksum = "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -665,7 +666,7 @@ checksum = "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]

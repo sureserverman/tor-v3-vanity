@@ -70,7 +70,13 @@ fn main() {
     out_buf.copy_to(&mut ring).unwrap();
 
     let stored = claimed.min(core::OUT_SLOTS) as usize;
-    let mut lines: Vec<String> = ring.chunks_exact(32).take(stored).map(hex).collect();
+    let mut lines: Vec<String> = ring
+        .as_chunks::<32>()
+        .0
+        .iter()
+        .take(stored)
+        .map(|c| hex(c))
+        .collect();
     lines.sort();
 
     println!("backend=nvptx claimed={claimed}");
